@@ -1,5 +1,11 @@
 .root {
-    -fx-base: rgba(60, 63, 65, 255);
+    -fx-base: #09384d;
+    -fx-text-fill: white;
+    -fx-font-family: "小賴字體 SC", serif;
+}
+
+.title-font {
+    -fx-font-size: 36px;
 }
 
 
