@@ -1,8 +1,8 @@
 #! /usr/bin/env bash
 set -eu
-JAR=CHANGE-IT-1.0.0-SNAPSHOT.jar
-NAME=CHANGE-IT
-ICON=CHANGE-IT.icns
+JAR=launchctl-generator-1.0.0-SNAPSHOT.jar
+NAME=LaunchctlGenerator
+ICON=icon.icns
 rm -rf pkg
 mkdir pkg
 mvn clean package
