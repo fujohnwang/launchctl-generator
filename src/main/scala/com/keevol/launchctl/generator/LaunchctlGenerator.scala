@@ -2,16 +2,17 @@ package com.keevol.launchctl.generator
 
 import com.keevol.javafx.KFXApplication
 import com.keevol.javafx.controls.{KStatusBar, KTaskSpinner}
-import com.keevol.javafx.utils.{Images, KTaskExecutor, Labels}
+import com.keevol.javafx.utils.{DnD, Images, KTaskExecutor, Labels, PopMessage}
+import com.keevol.launchctl.generator.utils.KVTemplateNodeGraphics._
 import fr.brouillard.oss.cssfx.CSSFX
 import javafx.geometry.{Insets, Pos}
-import javafx.scene.{Node, Scene}
 import javafx.scene.control.{Hyperlink, SplitPane}
 import javafx.scene.image.ImageView
-import javafx.scene.layout.{AnchorPane, BorderPane, HBox, StackPane, VBox}
+import javafx.scene.input.{DataFormat, TransferMode}
+import javafx.scene.layout._
+import javafx.scene.{Node, Scene}
 import javafx.stage.Stage
 import org.slf4j.LoggerFactory
-
 
 class LaunchctlGenerator extends KFXApplication {
 
@@ -20,16 +21,17 @@ class LaunchctlGenerator extends KFXApplication {
   val spinner = new KTaskSpinner()
   val taskExecutor = new KTaskExecutor(spinner)
 
-  val lcLabelNodeTemplate = Labels.default("Label")
-  val lcRunAtLoadNodeTemplate = Labels.default("RunAtLoad")
-  val lcKeepAliveNodeTemplate = Labels.default("KeepAlive")
-  val lcProgramNodeTemplate = Labels.default("Program")
-  val lcProgramArgumentsNodeTemplate = Labels.default("ProgramArguments")
-  val lcWorkingDirNodeTemplate = Labels.default("WorkingDirectory")
-  val lcUsernameNodeTemplate = Labels.default("UserName")
-  val lcOutPathNodeTemplate = Labels.default("StandardOutPath")
-  val lcErrPathNodeTemplate = Labels.default("StandardErrorPath")
-  val lcManualEditNodeTemplate = Labels.default("ManualEdit(Custom)")
+
+  val lcLabelNodeTemplate = createNode("Label")
+  val lcRunAtLoadNodeTemplate = createNode("RunAtLoad")
+  val lcKeepAliveNodeTemplate = createNode("KeepAlive")
+  val lcProgramNodeTemplate = createNode("Program")
+  val lcProgramArgumentsNodeTemplate = createNode("ProgramArguments")
+  val lcWorkingDirNodeTemplate = createNode("WorkingDirectory")
+  val lcUsernameNodeTemplate = createNode("UserName")
+  val lcOutPathNodeTemplate = createNode("StandardOutPath")
+  val lcErrPathNodeTemplate = createNode("StandardErrorPath")
+  val lcManualEditNodeTemplate = createNode("ManualEdit(Custom)")
 
   def layoutStage(primaryStage: Stage): Unit = {
 
@@ -75,6 +77,10 @@ class LaunchctlGenerator extends KFXApplication {
     val leftLayout = new StackPane()
     leftLayout.getChildren.add(Labels.title("Block编排区"))
     leftLayout.setId("left-zone")
+    DnD.dropTo(leftLayout) { dragboard =>
+      val nodeType = dragboard.getContent(DataFormat.PLAIN_TEXT).toString
+      PopMessage.show(nodeType, splitPane.getScene)
+    }
 
     val rightLayout = new StackPane()
     rightLayout.getChildren.add(Labels.title("Right XML ZONE"))
