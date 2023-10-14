@@ -10,9 +10,12 @@ import javafx.scene.control.{Hyperlink, SplitPane}
 import javafx.scene.image.ImageView
 import javafx.scene.layout.{AnchorPane, BorderPane, HBox, StackPane, VBox}
 import javafx.stage.Stage
+import org.slf4j.LoggerFactory
 
 
 class LaunchctlGenerator extends KFXApplication {
+
+  private val logger = LoggerFactory.getLogger(classOf[LaunchctlGenerator])
 
   val spinner = new KTaskSpinner()
   val taskExecutor = new KTaskExecutor(spinner)
@@ -31,6 +34,7 @@ class LaunchctlGenerator extends KFXApplication {
   def layoutStage(primaryStage: Stage): Unit = {
 
     primaryStage.setTitle("Launchctl Daemon Configuration Generator")
+    primaryStage.getIcons.add(Images.fromClassPath("/images/lc_logo.jpg"))
 
     val layout = new BorderPane()
     layout.setTop(layoutHeader())
@@ -70,6 +74,7 @@ class LaunchctlGenerator extends KFXApplication {
 
     val leftLayout = new StackPane()
     leftLayout.getChildren.add(Labels.title("Block编排区"))
+    leftLayout.setId("left-zone")
 
     val rightLayout = new StackPane()
     rightLayout.getChildren.add(Labels.title("Right XML ZONE"))
@@ -101,7 +106,10 @@ class LaunchctlGenerator extends KFXApplication {
 
 
 object LaunchctlGenerator {
+  private val logger = LoggerFactory.getLogger(classOf[LaunchctlGenerator])
+
   def main(args: Array[String]): Unit = {
+    logger.info("bootstrap LaunchctlGenerator...")
     KFXApplication.launch(classOf[LaunchctlGenerator], args)
   }
 }

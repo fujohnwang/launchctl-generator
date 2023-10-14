@@ -1,12 +1,42 @@
 .root {
-    -fx-base: #09384d;
-    -fx-text-fill: white;
+    /*-fx-base: #09384d;*/
+    /*-fx-text-fill: white;*/
     -fx-font-family: "小賴字體 SC", serif;
+    /*-fx-background-size: contain, contain, contain, contain, contain, contain;*/
+    /*-fx-background-position: bottom, bottom, bottom, bottom, bottom, bottom;*/
+    /*-fx-background-repeat: repeat-x, repeat-x, repeat-x, repeat-x, repeat-x, repeat-x;*/
+    /*-fx-background-image:*/
+    /*        url("https://edencoding.com/wp-content/uploads/2021/03/layer_06_1920x1080.png"),*/
+    /*        url("https://edencoding.com/wp-content/uploads/2021/03/layer_05_1920x1080.png"),*/
+    /*        url("https://edencoding.com/wp-content/uploads/2021/03/layer_04_1920x1080.png"),*/
+    /*        url("https://edencoding.com/wp-content/uploads/2021/03/layer_03_1920x1080.png"),*/
+    /*        url("https://edencoding.com/wp-content/uploads/2021/03/layer_02_1920x1080.png"),*/
+    /*        url("https://edencoding.com/wp-content/uploads/2021/03/layer_01_1920x1080.png");*/
 }
 
 .title-font {
     -fx-font-size: 36px;
 }
+
+#left-zone {
+    -fx-background-image: url("../images/lc_logo.jpg");
+    /*-fx-opacity: 0.5;*/
+    -fx-background-color: transparent;
+    -fx-background-position: center center;
+    -fx-background-repeat: stretch;
+    -fx-background-size: 512 512;
+}
+
+.lc-node {
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 10, 0, 0, 0);
+    -fx-border-width: 2px;
+    -fx-border-color: red;
+}
+
+
+
+
+
 
 
 
