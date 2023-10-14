@@ -2,11 +2,11 @@ package com.keevol.launchctl.generator
 
 import com.keevol.javafx.KFXApplication
 import com.keevol.javafx.controls.{KStatusBar, KTaskSpinner}
-import com.keevol.javafx.utils.{DnD, Images, KTaskExecutor, Labels, PopMessage}
+import com.keevol.javafx.utils.{DnD, Images, KTaskExecutor, Labels, PopMessage, ScrollPanes}
 import com.keevol.launchctl.generator.utils.KVTemplateNodeGraphics._
 import fr.brouillard.oss.cssfx.CSSFX
 import javafx.geometry.{Insets, Pos}
-import javafx.scene.control.{Hyperlink, SplitPane}
+import javafx.scene.control.{Hyperlink, ScrollPane, SplitPane}
 import javafx.scene.image.ImageView
 import javafx.scene.input.{DataFormat, TransferMode}
 import javafx.scene.layout._
@@ -35,7 +35,7 @@ class LaunchctlGenerator extends KFXApplication {
 
   def layoutStage(primaryStage: Stage): Unit = {
 
-    primaryStage.setTitle("Launchctl Daemon Configuration Generator")
+    primaryStage.setTitle("Launchd plist Composer")
     primaryStage.getIcons.add(Images.fromClassPath("/images/lc_logo.jpg"))
 
     val layout = new BorderPane()
@@ -51,7 +51,6 @@ class LaunchctlGenerator extends KFXApplication {
   }
 
   def layoutNodeTemplates(): Node = {
-    val layout = new AnchorPane()
     val listBox = new VBox(20)
     listBox.setAlignment(Pos.CENTER_LEFT)
     listBox.setPadding(new Insets(20))
@@ -65,10 +64,13 @@ class LaunchctlGenerator extends KFXApplication {
       lcUsernameNodeTemplate,
       lcOutPathNodeTemplate,
       lcErrPathNodeTemplate,
-      lcManualEditNodeTemplate
+      lcManualEditNodeTemplate,
+      Labels.default("xxx"),
+      Labels.default("aaa"),
+      Labels.default("bbb"),
+      Labels.default("444")
     )
-    layout.getChildren.add(listBox)
-    layout
+    ScrollPanes.wrap(listBox)
   }
 
   def layoutMainZone(): Node = {
