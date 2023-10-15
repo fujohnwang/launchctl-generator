@@ -20,6 +20,8 @@ object KVTemplateNodes {
   iconMap.put(LaunchdConfigKeys.Username.value(), "/icons/lc-user.png")
   iconMap.put(LaunchdConfigKeys.StandardOutputPath.value(), "/icons/lc-output-path.png")
   iconMap.put(LaunchdConfigKeys.StandardErrorPath.value(), "/icons/lc-err-path.png")
+  iconMap.put(LaunchdConfigKeys.StartInterval.value(), "/icons/lc-schedule.png")
+  iconMap.put(LaunchdConfigKeys.StartCalendarInterval.value(), "/icons/lc-job.png")
   iconMap.put(LaunchdConfigKeys.Custom.value(), "/icons/lc-custom.png")
 
   def getGraphicAsPerLabel(label: String = ""): ImageView = {

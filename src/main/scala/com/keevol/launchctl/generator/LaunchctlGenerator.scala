@@ -37,6 +37,8 @@ class LaunchctlGenerator extends KFXApplication {
   val lcUsernameNodeTemplate = createNode(LaunchdConfigKeys.Username.value())
   val lcOutPathNodeTemplate = createNode(LaunchdConfigKeys.StandardOutputPath.value())
   val lcErrPathNodeTemplate = createNode(LaunchdConfigKeys.StandardErrorPath.value())
+  val lcIntervalNodeTemplate = createNode(LaunchdConfigKeys.StartInterval.value())
+  val lcCalendarIntervalNodeTemplate = createNode(LaunchdConfigKeys.StartCalendarInterval.value())
   val lcManualEditNodeTemplate = createNode(LaunchdConfigKeys.Custom.value())
 
   val nodeEditCache: ConcurrentHashSet[String] = new ConcurrentHashSet[String]()
@@ -119,6 +121,8 @@ class LaunchctlGenerator extends KFXApplication {
       lcUsernameNodeTemplate,
       lcOutPathNodeTemplate,
       lcErrPathNodeTemplate,
+      lcIntervalNodeTemplate,
+      lcCalendarIntervalNodeTemplate,
       lcManualEditNodeTemplate
     )
     ScrollPanes.wrap(listBox)
