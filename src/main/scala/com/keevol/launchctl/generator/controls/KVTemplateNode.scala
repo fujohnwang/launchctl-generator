@@ -6,6 +6,7 @@ import javafx.scene.{Cursor, Node}
 import javafx.scene.image.ImageView
 import javafx.scene.input.{ClipboardContent, Dragboard, TransferMode}
 import javafx.scene.layout.VBox
+import org.slf4j.LoggerFactory
 
 /**
  * {{{
@@ -26,18 +27,21 @@ import javafx.scene.layout.VBox
  *        [[https://www.keevol.com]]
  */
 
-class KVTemplateNode(graphic: Node, label: String) extends VBox {
+class KVTemplateNode(graphic: Node, nodeType: String) extends VBox {
+  private val logger = LoggerFactory.getLogger(classOf[KVTemplateNode])
+
   setPadding(new Insets(5))
   setSpacing(7)
   setAlignment(Pos.CENTER)
 
   getStyleClass.add("kv-template-node")
 
-  getChildren.addAll(graphic, Labels.default(label))
+  getChildren.addAll(graphic, Labels.default(nodeType))
 
   DnD.onDrag(this) { dragboard =>
     val content = new ClipboardContent()
-    content.putString(label)
+    logger.debug(s"put nodeType: ${nodeType} to dragboard.")
+    content.putString(nodeType)
     dragboard.setContent(content)
     dragboard.setDragView(graphic.asInstanceOf[ImageView].getImage)
   }

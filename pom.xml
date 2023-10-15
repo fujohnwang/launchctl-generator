@@ -117,11 +117,6 @@
 			<artifactId>javafx-controls</artifactId>
 			<version>${javafx.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>org.openjfx</groupId>
-			<artifactId>javafx-web</artifactId>
-			<version>${javafx.version}</version>
-		</dependency>
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-swing</artifactId>
@@ -133,47 +128,10 @@
             <version>1.1.0-SNAPSHOT</version>
         </dependency>
 		<dependency>
-		    <groupId>com.gluonhq</groupId>
-		    <artifactId>emoji</artifactId>
-		    <version>1.0.1</version>
-		</dependency>
-		<!-- https://mvnrepository.com/artifact/com.dlsc.preferencesfx/preferencesfx-core -->
-		<dependency>
-			<groupId>com.dlsc.preferencesfx</groupId>
-			<artifactId>preferencesfx-core</artifactId>
-			<version>11.15.0</version>
-		</dependency>
-		<dependency>
             <groupId>fr.brouillard.oss</groupId>
             <artifactId>cssfx</artifactId>
             <version>11.4.0</version>
         </dependency>
-        <dependency>
-            <groupId>io.github.typhon0</groupId>
-            <artifactId>AnimateFX</artifactId>
-            <version>1.2.1</version>
-        </dependency>
-		<dependency>
-			<groupId>org.kordamp.ikonli</groupId>
-			<artifactId>ikonli-javafx</artifactId>
-			<version>11.5.0</version>
-		</dependency>
-		<dependency>
-			<groupId>org.kordamp.ikonli</groupId>
-			<artifactId>ikonli-fontawesome-pack</artifactId>
-			<version>11.5.0</version>
-		</dependency>
-        <dependency>
-			<groupId>io.vertx</groupId>
-			<artifactId>vertx-core</artifactId>
-			<version>4.4.6</version>
-		</dependency>
-		<!-- https://mvnrepository.com/artifact/io.vertx/vertx-web-client -->
-		<dependency>
-			<groupId>io.vertx</groupId>
-			<artifactId>vertx-web-client</artifactId>
-			<version>4.4.6</version>
-		</dependency>
 		<!-- https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->
 		<dependency>
 			<groupId>org.apache.commons</groupId>

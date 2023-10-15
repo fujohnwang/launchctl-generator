@@ -1,18 +1,22 @@
 package com.keevol.launchctl.generator
 
 import com.keevol.javafx.KFXApplication
-import com.keevol.javafx.controls.{KStatusBar, KTaskSpinner}
-import com.keevol.javafx.utils.{DnD, Images, KTaskExecutor, Labels, PopMessage, ScrollPanes}
-import com.keevol.launchctl.generator.utils.KVTemplateNodeGraphics._
+import com.keevol.javafx.controls.launchctl._
+import com.keevol.javafx.controls.{KList, KStatusBar, KTaskSpinner}
+import com.keevol.javafx.utils._
+import com.keevol.launchctl.generator.utils.KVTemplateNodes._
+import com.keevol.utils.Files
 import fr.brouillard.oss.cssfx.CSSFX
 import javafx.geometry.{Insets, Pos}
-import javafx.scene.control.{Hyperlink, ScrollPane, SplitPane}
+import javafx.scene.control.{Button, Hyperlink, SplitPane, Tooltip}
 import javafx.scene.image.ImageView
-import javafx.scene.input.{DataFormat, TransferMode}
+import javafx.scene.input.{DataFormat, KeyCode, KeyCodeCombination, KeyCombination}
 import javafx.scene.layout._
 import javafx.scene.{Node, Scene}
 import javafx.stage.Stage
 import org.slf4j.LoggerFactory
+
+import java.util.concurrent.{Callable, ConcurrentHashMap}
 
 class LaunchctlGenerator extends KFXApplication {
 
@@ -21,17 +25,42 @@ class LaunchctlGenerator extends KFXApplication {
   val spinner = new KTaskSpinner()
   val taskExecutor = new KTaskExecutor(spinner)
 
+  val lcLabelNodeTemplate = createNode(LaunchdConfigKeys.Label.value())
+  val lcRunAtLoadNodeTemplate = createNode(LaunchdConfigKeys.RunAtLoad.value())
+  val lcKeepAliveNodeTemplate = createNode(LaunchdConfigKeys.KeepAlive.value())
+  val lcProgramNodeTemplate = createNode(LaunchdConfigKeys.Program.value())
+  val lcProgramArgumentsNodeTemplate = createNode(LaunchdConfigKeys.ProgramArgs.value())
+  val lcWorkingDirNodeTemplate = createNode(LaunchdConfigKeys.WorkingDirectory.value())
+  val lcUsernameNodeTemplate = createNode(LaunchdConfigKeys.Username.value())
+  val lcOutPathNodeTemplate = createNode(LaunchdConfigKeys.StandardOutputPath.value())
+  val lcErrPathNodeTemplate = createNode(LaunchdConfigKeys.StandardErrorPath.value())
+  val lcManualEditNodeTemplate = createNode(LaunchdConfigKeys.Custom.value())
 
-  val lcLabelNodeTemplate = createNode("Label")
-  val lcRunAtLoadNodeTemplate = createNode("RunAtLoad")
-  val lcKeepAliveNodeTemplate = createNode("KeepAlive")
-  val lcProgramNodeTemplate = createNode("Program")
-  val lcProgramArgumentsNodeTemplate = createNode("ProgramArguments")
-  val lcWorkingDirNodeTemplate = createNode("WorkingDirectory")
-  val lcUsernameNodeTemplate = createNode("UserName")
-  val lcOutPathNodeTemplate = createNode("StandardOutPath")
-  val lcErrPathNodeTemplate = createNode("StandardErrorPath")
-  val lcManualEditNodeTemplate = createNode("ManualEdit(Custom)")
+  val nodeCreators = new ConcurrentHashMap[String, Callable[Node]]()
+  nodeCreators.put(LaunchdConfigKeys.Label.value(), () => new LabelNode(""))
+  nodeCreators.put(LaunchdConfigKeys.RunAtLoad.value(), () => new RunAtLoadNode())
+  nodeCreators.put(LaunchdConfigKeys.KeepAlive.value(), () => new KeepAliveNode())
+  nodeCreators.put(LaunchdConfigKeys.Program.value(), () => new ProgramNode(""))
+  nodeCreators.put(LaunchdConfigKeys.ProgramArgs.value(), () => new ProgramArgumentsNode(Array[String]()))
+  nodeCreators.put(LaunchdConfigKeys.WorkingDirectory.value(), () => new WorkingDirectoryNode(""))
+  nodeCreators.put(LaunchdConfigKeys.Username.value(), () => new UserNameNode(""))
+  nodeCreators.put(LaunchdConfigKeys.StandardOutputPath.value(), () => new StandardOutPathNode(""))
+  nodeCreators.put(LaunchdConfigKeys.StandardErrorPath.value(), () => new StandardErrorPathNode(""))
+  nodeCreators.put(LaunchdConfigKeys.Custom.value(), () => new CustomEditNode())
+
+  val composerList = new KList("Drop Node Below To Compose", new Insets(20))
+
+  val copyAction = new Runnable {
+    override def run(): Unit = {
+      // TODO copy plist content to clipboard
+      PopMessage.show("plist content copied successfully.")
+    }
+  }
+
+
+  override def registerGlobalKeys(stage: Stage): Unit = {
+    Keys.on(stage, new KeyCodeCombination(KeyCode.C, KeyCombination.META_DOWN))(copyAction)
+  }
 
   def layoutStage(primaryStage: Stage): Unit = {
 
@@ -64,11 +93,7 @@ class LaunchctlGenerator extends KFXApplication {
       lcUsernameNodeTemplate,
       lcOutPathNodeTemplate,
       lcErrPathNodeTemplate,
-      lcManualEditNodeTemplate,
-      Labels.default("xxx"),
-      Labels.default("aaa"),
-      Labels.default("bbb"),
-      Labels.default("444")
+      lcManualEditNodeTemplate
     )
     ScrollPanes.wrap(listBox)
   }
@@ -76,17 +101,19 @@ class LaunchctlGenerator extends KFXApplication {
   def layoutMainZone(): Node = {
     val splitPane = new SplitPane()
 
-    val leftLayout = new StackPane()
-    leftLayout.getChildren.add(Labels.title("Block编排区"))
-    leftLayout.setId("left-zone")
-    DnD.dropTo(leftLayout) { dragboard =>
+    DnD.dropTo(composerList) { dragboard =>
       val nodeType = dragboard.getContent(DataFormat.PLAIN_TEXT).toString
-      PopMessage.show(nodeType, splitPane.getScene)
+      logger.debug(s"get nodeType from dragboard: $nodeType")
+      if (nodeCreators.containsKey(nodeType)) {
+        composerList.addToList(nodeCreators.get(nodeType).call())
+      } else {
+        PopMessage.show(s"no node creator for ${nodeType}", splitPane.getScene)
+      }
     }
 
     val rightLayout = new StackPane()
     rightLayout.getChildren.add(Labels.title("Right XML ZONE"))
-    splitPane.getItems.addAll(leftLayout, rightLayout)
+    splitPane.getItems.addAll(composerList.putInScrollPane(), rightLayout)
     splitPane.setDividerPositions(0.5f, 0.5f)
 
     splitPane
@@ -108,6 +135,30 @@ class LaunchctlGenerator extends KFXApplication {
     logo.setFitHeight(46)
     logo.setPreserveRatio(true)
     layout.getChildren.add(logo)
+
+    val newEditButton = new Button("", Icons.fromImage("/icons/new_edit.png"))
+    newEditButton.setTooltip(new Tooltip("Start A New Configuration Edit"))
+    newEditButton.setOnAction(_ => {
+      composerList.clearList()
+    })
+    layout.getChildren.add(newEditButton)
+
+    val saveAsTemplateButton = new Button("", Icons.fromImage("/icons/save_as_template.png"))
+    saveAsTemplateButton.setTooltip(new Tooltip("Save As Template"))
+    saveAsTemplateButton.setOnAction(_ => {
+      // TODO save content to some place
+
+      composerList.clearList()
+    })
+    layout.getChildren.add(saveAsTemplateButton)
+
+    val copyButton = new Button("", Icons.fromImage("/icons/copy_to_clipboard.png"))
+    copyButton.setTooltip(new Tooltip("Copy to Clipboard"))
+
+    //    Keys.on(, new KeyCodeCombination(KeyCode.C, KeyCombination.META_DOWN))(copyAction)
+    copyButton.setOnAction(_ => copyAction.run())
+    layout.getChildren.addAll(Paddings.hPadding(), copyButton)
+
     layout
   }
 }

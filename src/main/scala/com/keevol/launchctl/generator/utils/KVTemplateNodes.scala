@@ -5,7 +5,7 @@ import com.keevol.launchctl.generator.controls.KVTemplateNode
 import javafx.scene.Node
 import javafx.scene.image.ImageView
 
-object KVTemplateNodeGraphics {
+object KVTemplateNodes {
   def getGraphicAsPerLabel(label: String = ""): Node = {
     val imageView = new ImageView(Images.from("/images/lc_logo.jpg"))
     imageView.setPreserveRatio(true)
