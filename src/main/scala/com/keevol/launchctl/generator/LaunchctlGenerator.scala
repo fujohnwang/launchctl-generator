@@ -7,6 +7,7 @@ import com.keevol.javafx.utils._
 import com.keevol.launchctl.generator.utils.KVTemplateNodes._
 import com.keevol.utils.Files
 import fr.brouillard.oss.cssfx.CSSFX
+import io.vertx.core.impl.ConcurrentHashSet
 import javafx.concurrent.Task
 import javafx.geometry.{Insets, Pos}
 import javafx.scene.control.{Button, Hyperlink, SplitPane, Tooltip}
@@ -15,6 +16,7 @@ import javafx.scene.input.{DataFormat, KeyCode, KeyCodeCombination, KeyCombinati
 import javafx.scene.layout._
 import javafx.scene.{Node, Scene}
 import javafx.stage.Stage
+import org.apache.commons.lang3.StringUtils
 import org.slf4j.LoggerFactory
 
 import java.util.concurrent.{Callable, ConcurrentHashMap}
@@ -37,6 +39,8 @@ class LaunchctlGenerator extends KFXApplication {
   val lcErrPathNodeTemplate = createNode(LaunchdConfigKeys.StandardErrorPath.value())
   val lcManualEditNodeTemplate = createNode(LaunchdConfigKeys.Custom.value())
 
+  val nodeEditCache: ConcurrentHashSet[String] = new ConcurrentHashSet[String]()
+
   val composerList = new KList("Drop Node Below To Compose", new Insets(20))
   composerList.setSpacing(20)
   composerList.setPadding(new Insets(20))
@@ -57,15 +61,16 @@ class LaunchctlGenerator extends KFXApplication {
 
   val loadFromTemplateTask = () => {
     composerList.clearList()
-    composerList.addToList(nodeCreators.get(LaunchdConfigKeys.Label.value()).call())
-    composerList.addToList(nodeCreators.get(LaunchdConfigKeys.RunAtLoad.value()).call())
-    composerList.addToList(nodeCreators.get(LaunchdConfigKeys.KeepAlive.value()).call())
-    composerList.addToList(nodeCreators.get(LaunchdConfigKeys.Program.value()).call())
-    composerList.addToList(nodeCreators.get(LaunchdConfigKeys.ProgramArgs.value()).call())
-    composerList.addToList(nodeCreators.get(LaunchdConfigKeys.WorkingDirectory.value()).call())
-    composerList.addToList(nodeCreators.get(LaunchdConfigKeys.Username.value()).call())
-    composerList.addToList(nodeCreators.get(LaunchdConfigKeys.StandardOutputPath.value()).call())
-    composerList.addToList(nodeCreators.get(LaunchdConfigKeys.StandardErrorPath.value()).call())
+    nodeEditCache.clear()
+    addNodeWithInterceptor(LaunchdConfigKeys.Label.value())
+    addNodeWithInterceptor(LaunchdConfigKeys.RunAtLoad.value())
+    addNodeWithInterceptor(LaunchdConfigKeys.KeepAlive.value())
+    addNodeWithInterceptor(LaunchdConfigKeys.Program.value())
+    addNodeWithInterceptor(LaunchdConfigKeys.ProgramArgs.value())
+    addNodeWithInterceptor(LaunchdConfigKeys.WorkingDirectory.value())
+    addNodeWithInterceptor(LaunchdConfigKeys.Username.value())
+    addNodeWithInterceptor(LaunchdConfigKeys.StandardOutputPath.value())
+    addNodeWithInterceptor(LaunchdConfigKeys.StandardErrorPath.value())
   }
 
 
@@ -125,10 +130,18 @@ class LaunchctlGenerator extends KFXApplication {
     DnD.dropTo(composerList) { dragboard =>
       val nodeType = dragboard.getContent(DataFormat.PLAIN_TEXT).toString
       logger.debug(s"get nodeType from dragboard: $nodeType")
-      if (nodeCreators.containsKey(nodeType)) {
-        composerList.addToList(nodeCreators.get(nodeType).call())
+      if (nodeEditCache.contains(nodeType)) {
+        val warningMessage = s"Node of type >>> ${nodeType} <<< can only be added once."
+        logger.info(warningMessage)
+        PopMessage.show(warningMessage)
+        false
       } else {
-        PopMessage.show(s"no node creator for ${nodeType}", splitPane.getScene)
+        if (nodeCreators.containsKey(nodeType)) {
+          addNodeWithInterceptor(nodeType)
+        } else {
+          PopMessage.show(s"no node creator for ${nodeType}", splitPane.getScene)
+        }
+        true
       }
     }
 
@@ -172,7 +185,7 @@ class LaunchctlGenerator extends KFXApplication {
     layout.getChildren.add(loadFromTemplateButton)
 
     val copyButton = new Button("", Icons.fromImage("/icons/copy_to_clipboard.png"))
-    copyButton.setTooltip(new Tooltip("Copy to Clipboard"))
+    copyButton.setTooltip(new Tooltip("Copy to Clipboard \n(Shortcut Key also Available)"))
 
     //    Keys.on(, new KeyCodeCombination(KeyCode.C, KeyCombination.META_DOWN))(copyAction)
     copyButton.setOnAction(_ => copyAction.run())
@@ -181,8 +194,21 @@ class LaunchctlGenerator extends KFXApplication {
     layout
   }
 
+  private def addNodeWithInterceptor(nodeType: String): Unit = {
+    composerList.addToList(nodeCreators.get(nodeType).call())
+    // custom node can be added multiple times, so ignore to keep it in cache
+    if (!StringUtils.equalsIgnoreCase(nodeType, LaunchdConfigKeys.Custom.value())) {
+      nodeEditCache.add(nodeType)
+    }
+  }
+
   private def removeOnClose(node: CloseActionable): Node = {
-    node.setOnClose(_ => composerList.getChildren.remove(node))
+    node.setOnClose(_ => {
+      composerList.getChildren.remove(node)
+      if (node.isInstanceOf[CustomKeyValueNode]) {
+        nodeEditCache.remove(node.asInstanceOf[CustomKeyValueNode].keyName)
+      }
+    })
     node.asInstanceOf[Node]
   }
 
