@@ -2,7 +2,7 @@ package com.keevol.launchctl.generator
 
 import com.keevol.javafx.KFXApplication
 import com.keevol.javafx.controls.launchctl._
-import com.keevol.javafx.controls.{KList, KStatusBar, KTaskSpinner}
+import com.keevol.javafx.controls.{CloseActionable, KList, KStatusBar, KTaskSpinner}
 import com.keevol.javafx.utils._
 import com.keevol.launchctl.generator.utils.KVTemplateNodes._
 import com.keevol.utils.Files
@@ -37,19 +37,23 @@ class LaunchctlGenerator extends KFXApplication {
   val lcErrPathNodeTemplate = createNode(LaunchdConfigKeys.StandardErrorPath.value())
   val lcManualEditNodeTemplate = createNode(LaunchdConfigKeys.Custom.value())
 
-  val nodeCreators = new ConcurrentHashMap[String, Callable[Node]]()
-  nodeCreators.put(LaunchdConfigKeys.Label.value(), () => new LabelNode(""))
-  nodeCreators.put(LaunchdConfigKeys.RunAtLoad.value(), () => new RunAtLoadNode())
-  nodeCreators.put(LaunchdConfigKeys.KeepAlive.value(), () => new KeepAliveNode())
-  nodeCreators.put(LaunchdConfigKeys.Program.value(), () => new ProgramNode(""))
-  nodeCreators.put(LaunchdConfigKeys.ProgramArgs.value(), () => new ProgramArgumentsNode(Array[String]()))
-  nodeCreators.put(LaunchdConfigKeys.WorkingDirectory.value(), () => new WorkingDirectoryNode(""))
-  nodeCreators.put(LaunchdConfigKeys.Username.value(), () => new UserNameNode(""))
-  nodeCreators.put(LaunchdConfigKeys.StandardOutputPath.value(), () => new StandardOutPathNode(""))
-  nodeCreators.put(LaunchdConfigKeys.StandardErrorPath.value(), () => new StandardErrorPathNode(""))
-  nodeCreators.put(LaunchdConfigKeys.Custom.value(), () => new CustomEditNode())
-
   val composerList = new KList("Drop Node Below To Compose", new Insets(20))
+  composerList.setSpacing(20)
+  composerList.setPadding(new Insets(20))
+
+  val nodeCloseAction = (node: Node) => composerList.getChildren.remove(node)
+
+  val nodeCreators = new ConcurrentHashMap[String, Callable[Node]]()
+  nodeCreators.put(LaunchdConfigKeys.Label.value(), () => removeOnClose(new LabelNode("")))
+  nodeCreators.put(LaunchdConfigKeys.RunAtLoad.value(), () => removeOnClose(new RunAtLoadNode()))
+  nodeCreators.put(LaunchdConfigKeys.KeepAlive.value(), () => removeOnClose(new KeepAliveNode()))
+  nodeCreators.put(LaunchdConfigKeys.Program.value(), () => removeOnClose(new ProgramNode("")))
+  nodeCreators.put(LaunchdConfigKeys.ProgramArgs.value(), () => removeOnClose(new ProgramArgumentsNode(Array[String]())))
+  nodeCreators.put(LaunchdConfigKeys.WorkingDirectory.value(), () => removeOnClose(new WorkingDirectoryNode("")))
+  nodeCreators.put(LaunchdConfigKeys.Username.value(), () => removeOnClose(new UserNameNode("")))
+  nodeCreators.put(LaunchdConfigKeys.StandardOutputPath.value(), () => removeOnClose(new StandardOutPathNode("")))
+  nodeCreators.put(LaunchdConfigKeys.StandardErrorPath.value(), () => removeOnClose(new StandardErrorPathNode("")))
+  nodeCreators.put(LaunchdConfigKeys.Custom.value(), () => removeOnClose(new CustomEditNode()))
 
   val loadFromTemplateTask = () => {
     composerList.clearList()
@@ -176,6 +180,12 @@ class LaunchctlGenerator extends KFXApplication {
 
     layout
   }
+
+  private def removeOnClose(node: CloseActionable): Node = {
+    node.setOnClose(_ => composerList.getChildren.remove(node))
+    node.asInstanceOf[Node]
+  }
+
 }
 
 
