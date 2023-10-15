@@ -81,6 +81,8 @@ class LaunchctlGenerator extends KFXApplication {
 
     primaryStage.setTitle("Launchd plist Composer")
     primaryStage.getIcons.add(Images.fromClassPath("/images/lc_logo.jpg"))
+    primaryStage.setMinWidth(1024)
+    primaryStage.setMinHeight(768)
 
     val layout = new BorderPane()
     layout.setTop(layoutHeader())
@@ -127,7 +129,7 @@ class LaunchctlGenerator extends KFXApplication {
     }
 
     val rightLayout = new StackPane()
-    rightLayout.getChildren.add(Labels.title("Right XML ZONE"))
+    rightLayout.getChildren.add(Labels.title("plist Preview ZONE"))
     splitPane.getItems.addAll(composerList.putInScrollPane(), rightLayout)
     splitPane.setDividerPositions(0.5f, 0.5f)
 
@@ -139,7 +141,7 @@ class LaunchctlGenerator extends KFXApplication {
     creditLabel.setOnMouseClicked(e => {
       getHostServices.showDocument("https://afoo.me")
     })
-    new KStatusBar(leftItems = Array(creditLabel), rightItems = Array(spinner))
+    new KStatusBar(centerItems = Array(creditLabel), rightItems = Array(spinner))
   }
 
   private def layoutHeader(): HBox = {
