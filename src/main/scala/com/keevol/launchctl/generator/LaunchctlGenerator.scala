@@ -7,6 +7,7 @@ import com.keevol.javafx.utils._
 import com.keevol.launchctl.generator.utils.KVTemplateNodes._
 import com.keevol.utils.Files
 import fr.brouillard.oss.cssfx.CSSFX
+import javafx.concurrent.Task
 import javafx.geometry.{Insets, Pos}
 import javafx.scene.control.{Button, Hyperlink, SplitPane, Tooltip}
 import javafx.scene.image.ImageView
@@ -49,6 +50,20 @@ class LaunchctlGenerator extends KFXApplication {
   nodeCreators.put(LaunchdConfigKeys.Custom.value(), () => new CustomEditNode())
 
   val composerList = new KList("Drop Node Below To Compose", new Insets(20))
+
+  val loadFromTemplateTask = () => {
+    composerList.clearList()
+    composerList.addToList(nodeCreators.get(LaunchdConfigKeys.Label.value()).call())
+    composerList.addToList(nodeCreators.get(LaunchdConfigKeys.RunAtLoad.value()).call())
+    composerList.addToList(nodeCreators.get(LaunchdConfigKeys.KeepAlive.value()).call())
+    composerList.addToList(nodeCreators.get(LaunchdConfigKeys.Program.value()).call())
+    composerList.addToList(nodeCreators.get(LaunchdConfigKeys.ProgramArgs.value()).call())
+    composerList.addToList(nodeCreators.get(LaunchdConfigKeys.WorkingDirectory.value()).call())
+    composerList.addToList(nodeCreators.get(LaunchdConfigKeys.Username.value()).call())
+    composerList.addToList(nodeCreators.get(LaunchdConfigKeys.StandardOutputPath.value()).call())
+    composerList.addToList(nodeCreators.get(LaunchdConfigKeys.StandardErrorPath.value()).call())
+  }
+
 
   val copyAction = new Runnable {
     override def run(): Unit = {
@@ -143,14 +158,12 @@ class LaunchctlGenerator extends KFXApplication {
     })
     layout.getChildren.add(newEditButton)
 
-    val saveAsTemplateButton = new Button("", Icons.fromImage("/icons/save_as_template.png"))
-    saveAsTemplateButton.setTooltip(new Tooltip("Save As Template"))
-    saveAsTemplateButton.setOnAction(_ => {
-      // TODO save content to some place
-
-      composerList.clearList()
+    val loadFromTemplateButton = new Button("", Icons.fromImage("/icons/load_from_template.png"))
+    loadFromTemplateButton.setTooltip(new Tooltip("Load From Template"))
+    loadFromTemplateButton.setOnAction(_ => {
+      loadFromTemplateTask.apply()
     })
-    layout.getChildren.add(saveAsTemplateButton)
+    layout.getChildren.add(loadFromTemplateButton)
 
     val copyButton = new Button("", Icons.fromImage("/icons/copy_to_clipboard.png"))
     copyButton.setTooltip(new Tooltip("Copy to Clipboard"))
