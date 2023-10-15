@@ -18,32 +18,28 @@
     -fx-font-size: 36px;
 }
 
-#left-zone {
-    -fx-background-image: url("../images/lc_logo.jpg");
-    /*-fx-opacity: 0.5;*/
-    -fx-background-color: transparent;
-    -fx-background-position: center center;
-    -fx-background-repeat: stretch;
-    -fx-background-size: 512 512;
-}
+/*#left-zone {*/
+/*    -fx-background-image: url("../images/lc_logo.jpg");*/
+/*    !*-fx-opacity: 0.5;*!*/
+/*    -fx-background-color: transparent;*/
+/*    -fx-background-position: center center;*/
+/*    -fx-background-repeat: stretch;*/
+/*    -fx-background-size: 512 512;*/
+/*}*/
 
-.lc-node {
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 10, 0, 0, 0);
-    -fx-border-width: 2px;
-    -fx-border-color: red;
-}
+/*.lc-node {*/
+/*    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 10, 0, 0, 0);*/
+/*    -fx-border-width: 2px;*/
+/*    -fx-border-color: red;*/
+/*}*/
 
-.lc-custom-kv-node, .lc-custom-edit-node {
+.lc-custom-kv-node, .lc-custom-edit-node, .lc-interval-node, .lc-calendar-interval-node {
     -fx-border-width: 1px;
     -fx-border-color: gray;
     -fx-border-style: dashed;
-    /*-fx-background-color: blue;*/
 }
 
 
-.close-button-bar {
-    /*-fx-background-color: orange;*/
-}
 
 
 

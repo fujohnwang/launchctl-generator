@@ -31,7 +31,7 @@ object KVTemplateNodes {
     imageView
   }
 
-  def createNode(label: String = ""): Node = {
+  def createTemplateNode(label: String = ""): Node = {
     new KVTemplateNode(getGraphicAsPerLabel(label), label)
   }
 }

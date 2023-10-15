@@ -8,9 +8,10 @@ import com.keevol.launchctl.generator.utils.KVTemplateNodes._
 import com.keevol.utils.Files
 import fr.brouillard.oss.cssfx.CSSFX
 import io.vertx.core.impl.ConcurrentHashSet
+import javafx.beans.value.{ChangeListener, ObservableValue}
 import javafx.concurrent.Task
 import javafx.geometry.{Insets, Pos}
-import javafx.scene.control.{Button, Hyperlink, SplitPane, Tooltip}
+import javafx.scene.control.{Button, Hyperlink, SplitPane, TextArea, Tooltip}
 import javafx.scene.image.ImageView
 import javafx.scene.input.{DataFormat, KeyCode, KeyCodeCombination, KeyCombination}
 import javafx.scene.layout._
@@ -28,18 +29,18 @@ class LaunchctlGenerator extends KFXApplication {
   val spinner = new KTaskSpinner()
   val taskExecutor = new KTaskExecutor(spinner)
 
-  val lcLabelNodeTemplate = createNode(LaunchdConfigKeys.Label.value())
-  val lcRunAtLoadNodeTemplate = createNode(LaunchdConfigKeys.RunAtLoad.value())
-  val lcKeepAliveNodeTemplate = createNode(LaunchdConfigKeys.KeepAlive.value())
-  val lcProgramNodeTemplate = createNode(LaunchdConfigKeys.Program.value())
-  val lcProgramArgumentsNodeTemplate = createNode(LaunchdConfigKeys.ProgramArgs.value())
-  val lcWorkingDirNodeTemplate = createNode(LaunchdConfigKeys.WorkingDirectory.value())
-  val lcUsernameNodeTemplate = createNode(LaunchdConfigKeys.Username.value())
-  val lcOutPathNodeTemplate = createNode(LaunchdConfigKeys.StandardOutputPath.value())
-  val lcErrPathNodeTemplate = createNode(LaunchdConfigKeys.StandardErrorPath.value())
-  val lcIntervalNodeTemplate = createNode(LaunchdConfigKeys.StartInterval.value())
-  val lcCalendarIntervalNodeTemplate = createNode(LaunchdConfigKeys.StartCalendarInterval.value())
-  val lcManualEditNodeTemplate = createNode(LaunchdConfigKeys.Custom.value())
+  val lcLabelNodeTemplate = createTemplateNode(LaunchdConfigKeys.Label.value())
+  val lcRunAtLoadNodeTemplate = createTemplateNode(LaunchdConfigKeys.RunAtLoad.value())
+  val lcKeepAliveNodeTemplate = createTemplateNode(LaunchdConfigKeys.KeepAlive.value())
+  val lcProgramNodeTemplate = createTemplateNode(LaunchdConfigKeys.Program.value())
+  val lcProgramArgumentsNodeTemplate = createTemplateNode(LaunchdConfigKeys.ProgramArgs.value())
+  val lcWorkingDirNodeTemplate = createTemplateNode(LaunchdConfigKeys.WorkingDirectory.value())
+  val lcUsernameNodeTemplate = createTemplateNode(LaunchdConfigKeys.Username.value())
+  val lcOutPathNodeTemplate = createTemplateNode(LaunchdConfigKeys.StandardOutputPath.value())
+  val lcErrPathNodeTemplate = createTemplateNode(LaunchdConfigKeys.StandardErrorPath.value())
+  val lcIntervalNodeTemplate = createTemplateNode(LaunchdConfigKeys.StartInterval.value())
+  val lcCalendarIntervalNodeTemplate = createTemplateNode(LaunchdConfigKeys.StartCalendarInterval.value())
+  val lcManualEditNodeTemplate = createTemplateNode(LaunchdConfigKeys.Custom.value())
 
   val nodeEditCache: ConcurrentHashSet[String] = new ConcurrentHashSet[String]()
 
@@ -50,16 +51,19 @@ class LaunchctlGenerator extends KFXApplication {
   val nodeCloseAction = (node: Node) => composerList.getChildren.remove(node)
 
   val nodeCreators = new ConcurrentHashMap[String, Callable[Node]]()
-  nodeCreators.put(LaunchdConfigKeys.Label.value(), () => removeOnClose(new LabelNode("")))
-  nodeCreators.put(LaunchdConfigKeys.RunAtLoad.value(), () => removeOnClose(new RunAtLoadNode()))
-  nodeCreators.put(LaunchdConfigKeys.KeepAlive.value(), () => removeOnClose(new KeepAliveNode()))
-  nodeCreators.put(LaunchdConfigKeys.Program.value(), () => removeOnClose(new ProgramNode("")))
-  nodeCreators.put(LaunchdConfigKeys.ProgramArgs.value(), () => removeOnClose(new ProgramArgumentsNode(Array[String]())))
-  nodeCreators.put(LaunchdConfigKeys.WorkingDirectory.value(), () => removeOnClose(new WorkingDirectoryNode("")))
-  nodeCreators.put(LaunchdConfigKeys.Username.value(), () => removeOnClose(new UserNameNode("")))
-  nodeCreators.put(LaunchdConfigKeys.StandardOutputPath.value(), () => removeOnClose(new StandardOutPathNode("")))
-  nodeCreators.put(LaunchdConfigKeys.StandardErrorPath.value(), () => removeOnClose(new StandardErrorPathNode("")))
-  nodeCreators.put(LaunchdConfigKeys.Custom.value(), () => removeOnClose(new CustomEditNode()))
+  nodeCreators.put(LaunchdConfigKeys.Label.value(), () => createNode(new LabelNode("")))
+  nodeCreators.put(LaunchdConfigKeys.RunAtLoad.value(), () => createNode(new RunAtLoadNode()))
+  nodeCreators.put(LaunchdConfigKeys.KeepAlive.value(), () => createNode(new KeepAliveNode()))
+  nodeCreators.put(LaunchdConfigKeys.Program.value(), () => createNode(new ProgramNode("")))
+  nodeCreators.put(LaunchdConfigKeys.ProgramArgs.value(), () => createNode(new ProgramArgumentsNode(Array[String]())))
+  nodeCreators.put(LaunchdConfigKeys.WorkingDirectory.value(), () => createNode(new WorkingDirectoryNode("")))
+  nodeCreators.put(LaunchdConfigKeys.Username.value(), () => createNode(new UserNameNode("")))
+  nodeCreators.put(LaunchdConfigKeys.StandardOutputPath.value(), () => createNode(new StandardOutPathNode("")))
+  nodeCreators.put(LaunchdConfigKeys.StandardErrorPath.value(), () => createNode(new StandardErrorPathNode("")))
+  nodeCreators.put(LaunchdConfigKeys.StartInterval.value(), () => createNode(new IntervalConfigNode()))
+  nodeCreators.put(LaunchdConfigKeys.StartCalendarInterval.value(), () => createNode(new CalendarIntervalConfigNode()))
+  nodeCreators.put(LaunchdConfigKeys.Custom.value(), () => createNode(new CustomEditNode()))
+
 
   val loadFromTemplateTask = () => {
     composerList.clearList()
@@ -75,10 +79,13 @@ class LaunchctlGenerator extends KFXApplication {
     addNodeWithInterceptor(LaunchdConfigKeys.StandardErrorPath.value())
   }
 
+  val plistXmlDisplay: TextArea = new TextArea()
+
 
   val copyAction = new Runnable {
     override def run(): Unit = {
-      // TODO copy plist content to clipboard
+      //  copy plist content to clipboard
+      Clipboards.put(plistXmlDisplay.getText)
       PopMessage.show("plist content copied successfully.")
     }
   }
@@ -131,6 +138,8 @@ class LaunchctlGenerator extends KFXApplication {
   def layoutMainZone(): Node = {
     val splitPane = new SplitPane()
 
+    val composerListScrollPane = composerList.putInScrollPane()
+
     DnD.dropTo(composerList) { dragboard =>
       val nodeType = dragboard.getContent(DataFormat.PLAIN_TEXT).toString
       logger.debug(s"get nodeType from dragboard: $nodeType")
@@ -142,6 +151,7 @@ class LaunchctlGenerator extends KFXApplication {
       } else {
         if (nodeCreators.containsKey(nodeType)) {
           addNodeWithInterceptor(nodeType)
+          composerListScrollPane.setVvalue(1.0)
         } else {
           PopMessage.show(s"no node creator for ${nodeType}", splitPane.getScene)
         }
@@ -150,8 +160,8 @@ class LaunchctlGenerator extends KFXApplication {
     }
 
     val rightLayout = new StackPane()
-    rightLayout.getChildren.add(Labels.title("plist Preview ZONE"))
-    splitPane.getItems.addAll(composerList.putInScrollPane(), rightLayout)
+    rightLayout.getChildren.add(plistXmlDisplay)
+    splitPane.getItems.addAll(composerListScrollPane, rightLayout)
     splitPane.setDividerPositions(0.5f, 0.5f)
 
     splitPane
@@ -176,14 +186,13 @@ class LaunchctlGenerator extends KFXApplication {
 
     val newEditButton = new Button("", Icons.fromImage("/icons/new_edit.png"))
     newEditButton.setTooltip(new Tooltip("Start A New Configuration Edit"))
-    newEditButton.setOnAction(_ => {
-      composerList.clearList()
-    })
+    newEditButton.setOnAction(_ => confirmBeforeClearWorkingCopy())
     layout.getChildren.add(newEditButton)
 
     val loadFromTemplateButton = new Button("", Icons.fromImage("/icons/load_from_template.png"))
     loadFromTemplateButton.setTooltip(new Tooltip("Load From Template"))
     loadFromTemplateButton.setOnAction(_ => {
+      confirmBeforeClearWorkingCopy()
       loadFromTemplateTask.apply()
     })
     layout.getChildren.add(loadFromTemplateButton)
@@ -198,22 +207,57 @@ class LaunchctlGenerator extends KFXApplication {
     layout
   }
 
+  private def confirmBeforeClearWorkingCopy(): Unit = {
+    if (!composerList.isEmpty()) {
+      if (Alerts.confirm("discard current working copy?!")) {
+        composerList.clearList()
+      }
+    }
+  }
+
   private def addNodeWithInterceptor(nodeType: String): Unit = {
     composerList.addToList(nodeCreators.get(nodeType).call())
     // custom node can be added multiple times, so ignore to keep it in cache
     if (!StringUtils.equalsIgnoreCase(nodeType, LaunchdConfigKeys.Custom.value())) {
       nodeEditCache.add(nodeType)
     }
+    assemblePlist()
   }
 
-  private def removeOnClose(node: CloseActionable): Node = {
-    node.setOnClose(_ => {
+  private def createNode(node: Node): Node = {
+    node.asInstanceOf[PlistxmlGenerator].addListener(new ChangeListener[Number] {
+      override def changed(observableValue: ObservableValue[_ <: Number], t: Number, t1: Number): Unit = assemblePlist()
+    })
+    node.asInstanceOf[CloseActionable].setOnClose(_ => {
       composerList.getChildren.remove(node)
       if (node.isInstanceOf[CustomKeyValueNode]) {
         nodeEditCache.remove(node.asInstanceOf[CustomKeyValueNode].keyName)
       }
+      assemblePlist()
     })
     node.asInstanceOf[Node]
+  }
+
+  /**
+   * several time points we should refresh the generated result:
+   * 1. when node added to composer
+   * 2. when node removed from composer
+   * 3. when node content changed.
+   */
+  private def assemblePlist(): Unit = {
+    val plistXmlBuilder = new java.lang.StringBuilder
+    plistXmlBuilder.append(
+      """<?xml version="1.0" encoding="UTF-8"?>
+        |<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+        |<plist version="1.0">
+        |<dict>
+        |""".stripMargin)
+    composerList.getItems().forEach(node => plistXmlBuilder.append(node.asInstanceOf[PlistxmlGenerator].toPlistXml()))
+    plistXmlBuilder.append(
+      """</dict>
+        |</plist>
+        |""".stripMargin)
+    plistXmlDisplay.setText(plistXmlBuilder.toString)
   }
 
 }
