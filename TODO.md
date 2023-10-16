@@ -5,7 +5,7 @@
 - [X] save as template
     - [X] new from template
 - [X] add close button to Templates Nodes with listener for action
-- [ ] scheduling template load
-- [ ] polish program args node 
+- [X] scheduling template load
+- [X] polish program args node 
 
 
