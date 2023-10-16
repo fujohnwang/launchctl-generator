@@ -55,7 +55,7 @@ class LaunchctlGenerator extends KFXApplication {
   nodeCreators.put(LaunchdConfigKeys.RunAtLoad.value(), () => createNode(new RunAtLoadNode()))
   nodeCreators.put(LaunchdConfigKeys.KeepAlive.value(), () => createNode(new KeepAliveNode()))
   nodeCreators.put(LaunchdConfigKeys.Program.value(), () => createNode(new ProgramNode("")))
-  nodeCreators.put(LaunchdConfigKeys.ProgramArgs.value(), () => createNode(new ProgramArgumentsNode(Array[String]())))
+  nodeCreators.put(LaunchdConfigKeys.ProgramArgs.value(), () => createNode(new ProgramArgumentsNode()))
   nodeCreators.put(LaunchdConfigKeys.WorkingDirectory.value(), () => createNode(new WorkingDirectoryNode("")))
   nodeCreators.put(LaunchdConfigKeys.Username.value(), () => createNode(new UserNameNode("")))
   nodeCreators.put(LaunchdConfigKeys.StandardOutputPath.value(), () => createNode(new StandardOutPathNode("")))
@@ -71,7 +71,10 @@ class LaunchctlGenerator extends KFXApplication {
 
     addNodeWithInterceptor(LaunchdConfigKeys.Label.value())
     addNodeWithInterceptor(LaunchdConfigKeys.RunAtLoad.value())
-    addNodeWithInterceptor(LaunchdConfigKeys.KeepAlive.value())
+    if(!jobTemplate) {
+      // jobs don't need this
+      addNodeWithInterceptor(LaunchdConfigKeys.KeepAlive.value())
+    }
     addNodeWithInterceptor(LaunchdConfigKeys.Program.value())
     addNodeWithInterceptor(LaunchdConfigKeys.ProgramArgs.value())
     if (jobTemplate) {
