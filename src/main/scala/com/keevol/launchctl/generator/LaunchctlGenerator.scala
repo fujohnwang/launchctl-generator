@@ -65,14 +65,18 @@ class LaunchctlGenerator extends KFXApplication {
   nodeCreators.put(LaunchdConfigKeys.Custom.value(), () => createNode(new CustomEditNode()))
 
 
-  val loadFromTemplateTask = () => {
+  val loadFromTemplateTask = (jobTemplate: Boolean) => {
     composerList.clearList()
     nodeEditCache.clear()
+
     addNodeWithInterceptor(LaunchdConfigKeys.Label.value())
     addNodeWithInterceptor(LaunchdConfigKeys.RunAtLoad.value())
     addNodeWithInterceptor(LaunchdConfigKeys.KeepAlive.value())
     addNodeWithInterceptor(LaunchdConfigKeys.Program.value())
     addNodeWithInterceptor(LaunchdConfigKeys.ProgramArgs.value())
+    if (jobTemplate) {
+      addNodeWithInterceptor(LaunchdConfigKeys.StartInterval.value())
+    }
     addNodeWithInterceptor(LaunchdConfigKeys.WorkingDirectory.value())
     addNodeWithInterceptor(LaunchdConfigKeys.Username.value())
     addNodeWithInterceptor(LaunchdConfigKeys.StandardOutputPath.value())
@@ -168,7 +172,7 @@ class LaunchctlGenerator extends KFXApplication {
   }
 
   private def layoutFooter(): Node = {
-    val creditLabel = new Hyperlink("©福强出品")
+    val creditLabel = new Hyperlink("©福强出品 (A Fuqiang Production)")
     creditLabel.setOnMouseClicked(e => {
       getHostServices.showDocument("https://afoo.me")
     })
@@ -184,20 +188,31 @@ class LaunchctlGenerator extends KFXApplication {
     logo.setPreserveRatio(true)
     layout.getChildren.add(logo)
 
-    val newEditButton = new Button("", Icons.fromImage("/icons/new_edit.png"))
+    val newEditButton = new Button("New", Icons.fromImage("/icons/new_edit.png"))
     newEditButton.setTooltip(new Tooltip("Start A New Configuration Edit"))
-    newEditButton.setOnAction(_ => confirmBeforeClearWorkingCopy())
+    newEditButton.setOnAction(_ => {
+      confirmBeforeClearWorkingCopy()
+      assemblePlist() // refresh
+    })
     layout.getChildren.add(newEditButton)
 
-    val loadFromTemplateButton = new Button("", Icons.fromImage("/icons/load_from_template.png"))
+    val loadFromTemplateButton = new Button("New from service template", Icons.fromImage("/icons/load_from_template.png"))
     loadFromTemplateButton.setTooltip(new Tooltip("Load From Template"))
     loadFromTemplateButton.setOnAction(_ => {
       confirmBeforeClearWorkingCopy()
-      loadFromTemplateTask.apply()
+      loadFromTemplateTask.apply(false)
     })
     layout.getChildren.add(loadFromTemplateButton)
 
-    val copyButton = new Button("", Icons.fromImage("/icons/copy_to_clipboard.png"))
+    val loadCalendarScheduleTemplateButton = new Button("New from schedule template", Icons.fromImage("/icons/calendar-load.png"))
+    loadCalendarScheduleTemplateButton.setTooltip(new Tooltip("Load Calendar Schedule Template Compose"))
+    loadCalendarScheduleTemplateButton.setOnAction(_ => {
+      confirmBeforeClearWorkingCopy()
+      loadFromTemplateTask(true)
+    })
+    layout.getChildren.add(loadCalendarScheduleTemplateButton)
+
+    val copyButton = new Button("Copy to clipboard", Icons.fromImage("/icons/copy_to_clipboard.png"))
     copyButton.setTooltip(new Tooltip("Copy to Clipboard \n(Shortcut Key also Available)"))
 
     //    Keys.on(, new KeyCodeCombination(KeyCode.C, KeyCombination.META_DOWN))(copyAction)
