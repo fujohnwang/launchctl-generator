@@ -1,10 +1,12 @@
+![](images/lcg_v2.jpg)
+
 # Intro to [Launchd plist Composer](https://wfq.gumroad.com/l/launchdpc)
 
 Just a simple [launchd](https://jiagoubaike.com/posts/launchd/) plist configuration file generator GUI built with JavaFX.
 
 ![](https://github.com/fujohnwang/launchctl-generator/assets/451506/30c37702-918a-47bf-be3e-485bd0a1879c)
 
-![](images/lcg_v2.jpg)
+
 
 # Download 
 
